@@ -52,7 +52,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        python3 -B -m pytest --cov=damnit --cov-report=xml -v --xvfb-backend xvfb
+        python3 -B -m pytest --cov=damnit --cov-report=xml -vvs --xvfb-backend xvfb
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
