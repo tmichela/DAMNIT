@@ -516,6 +516,7 @@ da-dev@xfel.eu"""
         self.update_agent.moveToThread(self._updates_thread)
 
         self._updates_thread.started.connect(self.update_agent.listen_loop)
+        self._updates_thread.finished.connect(self._updates_thread.deleteLater)
         self.update_agent.message.connect(self.handle_update)
         QtCore.QTimer.singleShot(0, self._updates_thread.start)
 
