@@ -4,7 +4,7 @@ from io import StringIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.Qsci import QsciScintilla, QsciLexerPython, QsciCommand
 
@@ -20,7 +20,8 @@ class ContextTestResult(Enum):
     ERROR = 2
 
 
-class ContextFileCheckerThread(QThread):
+# class ContextFileCheckerThread(QThread):
+class ContextFileChecker(QObject):
     # ContextTestResult, traceback, lineno, offset, checked_code
     check_result = pyqtSignal(object, str, int, int, str)
 
@@ -97,10 +98,12 @@ class Editor(QsciScintilla):
 
     def launch_test_context(self, db):
         context_python = db.metameta.get("context_python")
-        thread = ContextFileCheckerThread(self.text(), db.path.parent, context_python, parent=self)
-        thread.check_result.connect(self.on_test_result)
-        thread.finished.connect(thread.deleteLater)
-        thread.start()
+        self.file_checker = ContextFileChecker(self.text(), db.path.parent, context_python, parent=self)
+        self.thread = QThread()
+        self.file_checker.moveToThread(thread)
+        self.file_checker.check_result.connect(self.on_test_result)
+        self.thread.finished.connect(thread.deleteLater)
+        self.thread.start()
 
     def on_test_result(self, res, info, lineno, offset, checked_code):
         if res is ContextTestResult.ERROR:
