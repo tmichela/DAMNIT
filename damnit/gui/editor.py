@@ -10,6 +10,7 @@ from PyQt5.Qsci import QsciScintilla, QsciLexerPython, QsciCommand
 
 from pyflakes.reporter import Reporter
 from pyflakes.api import check as pyflakes_check
+from superqt.utils import thread_worker
 
 from ..backend.extract_data import get_context_file
 
@@ -20,48 +21,38 @@ class ContextTestResult(Enum):
     ERROR = 2
 
 
-class ContextFileCheckerThread(QThread):
-    # ContextTestResult, traceback, lineno, offset, checked_code
-    check_result = pyqtSignal(object, str, int, int, str)
+@thread_worker
+def check_context_file(code, db_dir, context_python):
+    # Write the context to a temporary file to evaluate it from another
+    # process.
+    with NamedTemporaryFile(prefix=".tmp_ctx", dir=db_dir) as ctx_file:
+        ctx_path = Path(ctx_file.name)
+        ctx_path.write_text(code)
 
-    def __init__(self, code, db_dir, context_python, parent=None):
-        super().__init__(parent)
-        self.code = code
-        self.db_dir = db_dir
-        self.context_python = context_python
+        context_python = sys.executable if context_python is None else context_python
+        ctx, error_info = get_context_file(ctx_path, context_python)
 
-    def run(self):
-        # Write the context to a temporary file to evaluate it from another
-        # process.
-        with NamedTemporaryFile(prefix=".tmp_ctx", dir=self.db_dir) as ctx_file:
-            ctx_path = Path(ctx_file.name)
-            ctx_path.write_text(self.code)
+    if error_info is not None:
+        stacktrace, lineno, offset = error_info
+        return ContextTestResult.ERROR, stacktrace, lineno, offset, code
 
-            context_python = sys.executable if self.context_python is None else self.context_python
-            ctx, error_info = get_context_file(ctx_path, context_python)
+    # If that worked, try pyflakes
+    out_buffer = StringIO()
+    reporter = Reporter(out_buffer, out_buffer)
+    pyflakes_check(code, "<ctx>", reporter)
+    # Disgusting hack to avoid getting warnings for "var#foo", "meta#foo",
+    # and "mymdc#foo" type annotations. This needs some tweaking to avoid
+    # missing real errors.
+    pyflakes_output = "\n".join([line for line in out_buffer.getvalue().split("\n")
+                                    if not line.endswith("undefined name 'var'") \
+                                    and not line.endswith("undefined name 'meta'") \
+                                    and not line.endswith("undefined name 'mymdc'")])
 
-        if error_info is not None:
-            stacktrace, lineno, offset = error_info
-            self.check_result.emit(ContextTestResult.ERROR, stacktrace, lineno, offset, self.code)
-            return
-
-        # If that worked, try pyflakes
-        out_buffer = StringIO()
-        reporter = Reporter(out_buffer, out_buffer)
-        pyflakes_check(self.code, "<ctx>", reporter)
-        # Disgusting hack to avoid getting warnings for "var#foo", "meta#foo",
-        # and "mymdc#foo" type annotations. This needs some tweaking to avoid
-        # missing real errors.
-        pyflakes_output = "\n".join([line for line in out_buffer.getvalue().split("\n")
-                                     if not line.endswith("undefined name 'var'") \
-                                     and not line.endswith("undefined name 'meta'") \
-                                     and not line.endswith("undefined name 'mymdc'")])
-
-        if len(pyflakes_output) > 0:
-            res, info = ContextTestResult.WARNING, pyflakes_output
-        else:
-            res, info = ContextTestResult.OK, None
-        self.check_result.emit(res, info, -1, -1, self.code)
+    if len(pyflakes_output) > 0:
+        res, info = ContextTestResult.WARNING, pyflakes_output
+    else:
+        res, info = ContextTestResult.OK, None
+    return res, info, -1, -1, code
 
 
 class Editor(QsciScintilla):
@@ -97,9 +88,8 @@ class Editor(QsciScintilla):
 
     def launch_test_context(self, db):
         context_python = db.metameta.get("context_python")
-        thread = ContextFileCheckerThread(self.text(), db.path.parent, context_python, parent=self)
-        thread.check_result.connect(self.on_test_result)
-        thread.finished.connect(thread.deleteLater)
+        thread = check_context_file(self.text(), db.path.parent, context_python)
+        thread.returned.connect(self.on_test_result)
         thread.start()
 
     def on_test_result(self, res, info, lineno, offset, checked_code):
