@@ -23,6 +23,7 @@ class ContextTestResult(Enum):
 
 @thread_worker
 def check_context_file(code, db_dir, context_python):
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
     # Write the context to a temporary file to evaluate it from another
     # process.
     with NamedTemporaryFile(prefix=".tmp_ctx", dir=db_dir) as ctx_file:
@@ -34,6 +35,7 @@ def check_context_file(code, db_dir, context_python):
 
     if error_info is not None:
         stacktrace, lineno, offset = error_info
+        print('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,')
         return ContextTestResult.ERROR, stacktrace, lineno, offset, code
 
     # If that worked, try pyflakes
@@ -52,6 +54,7 @@ def check_context_file(code, db_dir, context_python):
         res, info = ContextTestResult.WARNING, pyflakes_output
     else:
         res, info = ContextTestResult.OK, None
+    print('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,')
     return res, info, -1, -1, code
 
 
