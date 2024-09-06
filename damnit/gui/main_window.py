@@ -6,15 +6,11 @@ from argparse import ArgumentParser
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from socket import gethostname
 
 import h5py
 import numpy as np
-import pandas as pd
 import xarray as xr
 from kafka.errors import NoBrokersAvailable
-from pandas.api.types import infer_dtype
-from plotly.graph_objects import Figure as PlotlyFigure
 from PyQt5 import QtCore, QtGui, QtSvg, QtWidgets
 from PyQt5.Qsci import QsciLexerPython, QsciScintilla
 from PyQt5.QtCore import Qt

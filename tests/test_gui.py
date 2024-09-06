@@ -8,7 +8,6 @@ from types import SimpleNamespace
 
 import h5py
 import pytest
-import numpy as np
 import pandas as pd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
@@ -16,7 +15,7 @@ from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QInputDialog, \
     QStyledItemDelegate, QLineEdit
 
 import damnit
-from damnit.ctxsupport.ctxrunner import ContextFile, Results
+from damnit.ctxsupport.ctxrunner import ContextFile
 from damnit.backend.db import DamnitDB, ReducedData
 from damnit.backend.extract_data import add_to_db
 from damnit.gui.editor import ContextTestResult
@@ -51,6 +50,7 @@ def test_connect_to_kafka(mock_db, qtbot):
         MainWindow(db_dir, True).close()
         kafka_cns.assert_called_once()
         kafka_prd.assert_called_once()
+
 
 def test_editor(mock_db, mock_ctx, qtbot):
     db_dir, db = mock_db
@@ -777,33 +777,55 @@ def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, 
 
 
 def test_open_dialog(mock_db, qtbot):
+    print('> test_open_dialog > 1')
     db_dir, db = mock_db
+    print('> test_open_dialog > 2')
     dlg = OpenDBDialog()
+    print('> test_open_dialog > 3')
     qtbot.addWidget(dlg)
+    print('> test_open_dialog > 4')
     dlg.proposal_finder_thread.start()
+    print('> test_open_dialog > 5')
 
     # Test supplying a proposal number:
     with patch("damnit.gui.open_dialog.find_proposal", return_value=str(db_dir)):
+        print('> test_open_dialog > 6')
         with qtbot.waitSignal(dlg.proposal_finder.find_result):
+            print('> test_open_dialog > 7')
             dlg.ui.proposal_edit.setText('1234')
+            print('> test_open_dialog > 8')
     dlg.accept()
+    print('> test_open_dialog > 9')
     dlg.proposal_finder_thread.wait(2000)
+    print('> test_open_dialog > 10')
 
     assert dlg.get_chosen_dir() == db_dir / 'usr/Shared/amore'
+    print('> test_open_dialog > 11')
     assert dlg.get_proposal_num() == 1234
+    print('> test_open_dialog > 12')
 
     # Test selecting a folder:
     dlg = OpenDBDialog()
+    print('> test_open_dialog > 13')
     qtbot.addWidget(dlg)
+    print('> test_open_dialog > 14')
     dlg.proposal_finder_thread.start()
+    print('> test_open_dialog > 15')
     dlg.ui.folder_rb.setChecked(True)
+    print('> test_open_dialog > 16')
     with patch.object(QFileDialog, 'getExistingDirectory', return_value=str(db_dir)):
+        print('> test_open_dialog > 17')
         dlg.ui.browse_button.click()
+        print('> test_open_dialog > 18')
     dlg.accept()
+    print('> test_open_dialog > 19')
     dlg.proposal_finder_thread.wait(2000)
+    print('> test_open_dialog > 20')
 
     assert dlg.get_chosen_dir() == db_dir
+    print('> test_open_dialog > 21')
     assert dlg.get_proposal_num() is None
+    print('> test_open_dialog > 22')
 
 def test_zulip(mock_db_with_data, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
