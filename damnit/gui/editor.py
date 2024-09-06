@@ -95,7 +95,9 @@ class Editor(QsciScintilla):
         thread.returned.connect(self.on_test_result)
         thread.start()
 
-    def on_test_result(self, res, info, lineno, offset, checked_code):
+    def on_test_result(self, value):
+        res, info, lineno, offset, checked_code = value
+
         if res is ContextTestResult.ERROR:
             if lineno != -1:
                 # The line numbers reported by Python are 1-indexed so we
