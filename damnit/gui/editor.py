@@ -95,29 +95,29 @@ class Editor(QsciScintilla):
         line_del = commands.find(QsciCommand.LineDelete)
         line_del.setKey(Qt.ControlModifier | Qt.Key_D)
 
-        # self._file_checker_thread = None
+        self._file_checker_thread = None
 
-    # def closeEvent(self, event):
-    #     if self._file_checker_thread is not None:
-    #         self._file_checker_thread.exit()
-    #         self._file_checker_thread.wait()
-    #         self._file_checker_thread = None
-    #     super().closeEvent(event)
-
-    # def launch_test_context(self, db):
-    #     context_python = db.metameta.get("context_python")
-    #     self._file_checker_thread = ContextFileCheckerThread(
-    #         self.text(), db.path.parent, context_python, parent=self)
-    #     self._file_checker_thread.check_result.connect(self.on_test_result)
-    #     self._file_checker_thread.finished.connect(self._file_checker_thread.deleteLater)
-    #     self._file_checker_thread.start()
+    def closeEvent(self, event):
+        if self._file_checker_thread is not None:
+            self._file_checker_thread.exit()
+            self._file_checker_thread.wait()
+            self._file_checker_thread = None
+        super().closeEvent(event)
 
     def launch_test_context(self, db):
         context_python = db.metameta.get("context_python")
-        thread = ContextFileCheckerThread(self.text(), db.path.parent, context_python, parent=self)
-        thread.check_result.connect(self.on_test_result)
-        thread.finished.connect(thread.deleteLater)
-        thread.start()
+        self._file_checker_thread = ContextFileCheckerThread(
+            self.text(), db.path.parent, context_python, parent=self)
+        self._file_checker_thread.check_result.connect(self.on_test_result)
+        self._file_checker_thread.finished.connect(self._file_checker_thread.deleteLater)
+        self._file_checker_thread.start()
+
+    # def launch_test_context(self, db):
+    #     context_python = db.metameta.get("context_python")
+    #     thread = ContextFileCheckerThread(self.text(), db.path.parent, context_python, parent=self)
+    #     thread.check_result.connect(self.on_test_result)
+    #     thread.finished.connect(thread.deleteLater)
+    #     thread.start()
 
     def on_test_result(self, res, info, lineno, offset, checked_code):
         if res is ContextTestResult.ERROR:
