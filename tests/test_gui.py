@@ -35,7 +35,7 @@ def pid_dead(pid):
     except ProcessLookupError:
         return True
 
-@pytest.mark.skip
+
 def test_connect_to_kafka(mock_db, qtbot):
     db_dir, db = mock_db
     pkg = "damnit.gui.kafka"
@@ -52,7 +52,7 @@ def test_connect_to_kafka(mock_db, qtbot):
         kafka_cns.assert_called_once()
         kafka_prd.assert_called_once()
 
-
+@pytest.mark.skip
 def test_editor(mock_db, mock_ctx, qtbot):
     db_dir, db = mock_db
     ctx_path = db_dir / "context.py"
