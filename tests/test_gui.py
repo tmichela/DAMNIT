@@ -52,13 +52,13 @@ def test_connect_to_kafka(mock_db, qtbot):
 
     with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
          patch(f"{pkg}.KafkaProducer") as kafka_prd:
-        win1 = MainWindow(db_dir, True).close()
+        win = MainWindow(db_dir, True)
 
-        with qtbot.waitSignal(win1._editor.check_result):
+        with qtbot.waitSignal(win._editor.check_result):
             kafka_cns.assert_called_once()
             kafka_prd.assert_called_once()
 
-        win1.close()
+        win.close()
 
 
 @pytest.mark.skip
