@@ -105,6 +105,9 @@ class Editor(QsciScintilla):
         super().closeEvent(event)
 
     def launch_test_context(self, db):
+        if self._file_checker_thread is not None and self._file_checker_thread.isRunning():
+            self._file_checker_thread.wait()
+
         context_python = db.metameta.get("context_python")
         self._file_checker_thread = ContextFileCheckerThread(
             self.text(), db.path.parent, context_python, parent=self)
