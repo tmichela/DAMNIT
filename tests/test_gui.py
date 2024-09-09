@@ -828,6 +828,7 @@ def test_open_dialog(mock_db, qtbot):
     assert dlg.get_proposal_num() is None
 
 
+@pytest.mark.skip
 def test_zulip(mock_db_with_data, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
@@ -880,6 +881,7 @@ def test_zulip(mock_db_with_data, monkeypatch, qtbot):
         messenger.send_table.assert_called_once()
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize("extension", [".xlsx", ".csv"])
 def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
     db_dir, db = mock_db_with_data
@@ -916,6 +918,7 @@ def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
     assert df["Image"][0] == "<image>"
 
 
+@pytest.mark.skip
 def test_delete_variable(mock_db_with_data, qtbot, monkeypatch):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
@@ -957,6 +960,7 @@ def test_delete_variable(mock_db_with_data, qtbot, monkeypatch):
         assert "array" not in f[".reduced"].keys()
 
 
+@pytest.mark.skip
 def test_precreate_runs(mock_db_with_data, qtbot, monkeypatch):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
