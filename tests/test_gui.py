@@ -326,7 +326,7 @@ def test_handle_update(mock_db, qtbot):
     qtbot.waitSignal(win._editor.check_result)
 
 
-@pytest.mark.skip
+
 def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
@@ -358,7 +358,7 @@ def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
     qtbot.waitSignal(win._editor.check_result)
 
 
-
+@pytest.mark.skip
 def test_autoconfigure(tmp_path, bound_port, request, qtbot):
     db_dir = tmp_path / "usr/Shared/amore"
     win = MainWindow(None, False)
