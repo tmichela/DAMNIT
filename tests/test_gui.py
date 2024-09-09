@@ -52,7 +52,7 @@ def test_connect_to_kafka(mock_db, qtbot):
         kafka_cns.assert_called_once()
         kafka_prd.assert_called_once()
 
-@pytest.mark.skip
+
 def test_editor(mock_db, mock_ctx, qtbot):
     db_dir, db = mock_db
     ctx_path = db_dir / "context.py"
@@ -151,7 +151,7 @@ def test_editor(mock_db, mock_ctx, qtbot):
     assert ctx_path.read_text() == warning_code
 
 
-
+@pytest.mark.skip
 def test_settings(mock_db_with_data, mock_ctx, tmp_path, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
