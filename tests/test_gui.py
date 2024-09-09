@@ -941,23 +941,23 @@ def test_delete_variable(mock_db_with_data, qtbot, monkeypatch):
         assert "array" not in f.keys()
         assert "array" not in f[".reduced"].keys()
 
-# def test_precreate_runs(mock_db_with_data, qtbot, monkeypatch):
-#     db_dir, db = mock_db_with_data
-#     monkeypatch.chdir(db_dir)
+def test_precreate_runs(mock_db_with_data, qtbot, monkeypatch):
+    db_dir, db = mock_db_with_data
+    monkeypatch.chdir(db_dir)
 
-#     win = MainWindow(db_dir, connect_to_kafka=False)
-#     qtbot.addWidget(win)
-#     get_n_runs = lambda: db.conn.execute("SELECT COUNT(run) FROM runs").fetchone()[0]
-#     n_runs = get_n_runs()
+    win = MainWindow(db_dir, connect_to_kafka=False)
+    qtbot.addWidget(win)
+    get_n_runs = lambda: db.conn.execute("SELECT COUNT(run) FROM runs").fetchone()[0]
+    n_runs = get_n_runs()
 
-#     # The user cancelling should do nothing
-#     with patch.object(QInputDialog, "getInt", return_value=(1, False)) as dialog:
-#         win.precreate_runs_dialog()
-#         dialog.assert_called_once()
-#         assert get_n_runs() == n_runs
+    # The user cancelling should do nothing
+    with patch.object(QInputDialog, "getInt", return_value=(1, False)) as dialog:
+        win.precreate_runs_dialog()
+        dialog.assert_called_once()
+        assert get_n_runs() == n_runs
 
-#     # But accepting should add a run
-#     with patch.object(QInputDialog, "getInt", return_value=(1, True)) as dialog:
-#         win.precreate_runs_dialog()
-#         dialog.assert_called_once()
-#         assert get_n_runs() == n_runs + 1
+    # But accepting should add a run
+    with patch.object(QInputDialog, "getInt", return_value=(1, True)) as dialog:
+        win.precreate_runs_dialog()
+        dialog.assert_called_once()
+        assert get_n_runs() == n_runs + 1
