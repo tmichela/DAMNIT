@@ -866,40 +866,40 @@ def test_zulip(mock_db_with_data, monkeypatch, qtbot):
 
         messenger.send_table.assert_called_once()
 
-# @pytest.mark.parametrize("extension", [".xlsx", ".csv"])
-# def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
-#     db_dir, db = mock_db_with_data
-#     monkeypatch.chdir(db_dir)
+@pytest.mark.parametrize("extension", [".xlsx", ".csv"])
+def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
+    db_dir, db = mock_db_with_data
+    monkeypatch.chdir(db_dir)
 
-#     code = """
-#     import numpy as np
-#     from damnit_ctx import Variable
+    code = """
+    import numpy as np
+    from damnit_ctx import Variable
 
-#     @Variable(title="Number")
-#     def number(run):
-#         return 42
+    @Variable(title="Number")
+    def number(run):
+        return 42
 
-#     @Variable(title="Image")
-#     def image(run):
-#         return np.random.rand(100, 100)
-#     """
-#     ctx = mkcontext(code)
-#     (db_dir / "context.py").write_text(ctx.code)
-#     extract_mock_run(1)
+    @Variable(title="Image")
+    def image(run):
+        return np.random.rand(100, 100)
+    """
+    ctx = mkcontext(code)
+    (db_dir / "context.py").write_text(ctx.code)
+    extract_mock_run(1)
 
-#     win = MainWindow(db_dir, connect_to_kafka=False)
-#     qtbot.addWidget(win)
+    win = MainWindow(db_dir, connect_to_kafka=False)
+    qtbot.addWidget(win)
 
-#     export_path = db_dir / f"export{extension}"
-#     filter_str = f"Ext (*{extension})"
-#     with patch.object(QFileDialog, "getSaveFileName", return_value=(str(export_path.stem), filter_str)):
-#         win.export_table()
+    export_path = db_dir / f"export{extension}"
+    filter_str = f"Ext (*{extension})"
+    with patch.object(QFileDialog, "getSaveFileName", return_value=(str(export_path.stem), filter_str)):
+        win.export_table()
 
-#     assert export_path.is_file()
+    assert export_path.is_file()
 
-#     # Check that images are formatted nicely
-#     df = pd.read_excel(export_path) if extension == ".xlsx" else pd.read_csv(export_path)
-#     assert df["Image"][0] == "<image>"
+    # Check that images are formatted nicely
+    df = pd.read_excel(export_path) if extension == ".xlsx" else pd.read_csv(export_path)
+    assert df["Image"][0] == "<image>"
 
 # def test_delete_variable(mock_db_with_data, qtbot, monkeypatch):
 #     db_dir, db = mock_db_with_data
