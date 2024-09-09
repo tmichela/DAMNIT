@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [master]
+    branches: ["*"]
     tags: ["*"]
   pull_request:
 
@@ -44,12 +44,6 @@ jobs:
       run: |
         python3 -m pytest --cov=damnit --cov-report=xml -v
 
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
-        verbose: true
 
   publish:
     runs-on: ubuntu-latest
