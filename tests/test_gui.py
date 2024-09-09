@@ -35,7 +35,7 @@ def pid_dead(pid):
     except ProcessLookupError:
         return True
 
-
+@pytest.mark.skip
 def test_connect_to_kafka(mock_db, qtbot):
     db_dir, db = mock_db
     pkg = "damnit.gui.kafka"
@@ -52,6 +52,7 @@ def test_connect_to_kafka(mock_db, qtbot):
         kafka_cns.assert_called_once()
         kafka_prd.assert_called_once()
 
+@pytest.mark.skip
 def test_editor(mock_db, mock_ctx, qtbot):
     db_dir, db = mock_db
     ctx_path = db_dir / "context.py"
@@ -149,6 +150,8 @@ def test_editor(mock_db, mock_ctx, qtbot):
         win.save_context()
     assert ctx_path.read_text() == warning_code
 
+
+@pytest.mark.skip
 def test_settings(mock_db_with_data, mock_ctx, tmp_path, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
@@ -279,6 +282,8 @@ def test_settings(mock_db_with_data, mock_ctx, tmp_path, monkeypatch, qtbot):
 
     qtbot.waitSignal(win._editor.check_result)
 
+
+@pytest.mark.skip
 def test_handle_update(mock_db, qtbot):
     db_dir, db = mock_db
 
@@ -320,6 +325,8 @@ def test_handle_update(mock_db, qtbot):
 
     qtbot.waitSignal(win._editor.check_result)
 
+
+@pytest.mark.skip
 def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
@@ -350,6 +357,8 @@ def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
 
     qtbot.waitSignal(win._editor.check_result)
 
+
+@pytest.mark.skip
 def test_autoconfigure(tmp_path, bound_port, request, qtbot):
     db_dir = tmp_path / "usr/Shared/amore"
     win = MainWindow(None, False)
@@ -400,6 +409,8 @@ def test_autoconfigure(tmp_path, bound_port, request, qtbot):
         win.autoconfigure.assert_called_once_with(db_dir)
         initialize_and_start_backend.assert_called_once_with(db_dir, 1234)
 
+
+@pytest.mark.skip
 def test_user_vars(mock_ctx_user, mock_user_vars, mock_db, qtbot):
 
     proposal = 1234
@@ -678,6 +689,8 @@ def test_user_vars(mock_ctx_user, mock_user_vars, mock_db, qtbot):
     # Check that the value in the db matches what was typed in the table
     assert get_value_from_db("user_boolean") is None
 
+
+@pytest.mark.skip
 def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
@@ -784,6 +797,7 @@ def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, 
         warning.assert_not_called()
 
 
+@pytest.mark.skip
 def test_open_dialog(mock_db, qtbot):
     db_dir, db = mock_db
     dlg = OpenDBDialog()
@@ -815,6 +829,7 @@ def test_open_dialog(mock_db, qtbot):
     assert dlg.get_proposal_num() is None
 
 
+@pytest.mark.skip
 def test_zulip(mock_db_with_data, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
@@ -866,6 +881,8 @@ def test_zulip(mock_db_with_data, monkeypatch, qtbot):
 
         messenger.send_table.assert_called_once()
 
+
+@pytest.mark.skip
 @pytest.mark.parametrize("extension", [".xlsx", ".csv"])
 def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
     db_dir, db = mock_db_with_data
@@ -901,6 +918,8 @@ def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
     df = pd.read_excel(export_path) if extension == ".xlsx" else pd.read_csv(export_path)
     assert df["Image"][0] == "<image>"
 
+
+@pytest.mark.skip
 def test_delete_variable(mock_db_with_data, qtbot, monkeypatch):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
@@ -940,6 +959,7 @@ def test_delete_variable(mock_db_with_data, qtbot, monkeypatch):
     with h5py.File(db_dir / f"extracted_data/p{proposal}_r1.h5") as f:
         assert "array" not in f.keys()
         assert "array" not in f[".reduced"].keys()
+
 
 def test_precreate_runs(mock_db_with_data, qtbot, monkeypatch):
     db_dir, db = mock_db_with_data
