@@ -679,6 +679,10 @@ def test_user_vars(mock_ctx_user, mock_user_vars, mock_db, qtbot):
     # Check that the value in the db matches what was typed in the table
     assert get_value_from_db("user_boolean") is None
 
+    qtbot.waitSignal(win._editor.check_result)
+    win.close()
+
+
 def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
