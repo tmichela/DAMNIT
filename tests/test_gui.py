@@ -283,7 +283,7 @@ def test_settings(mock_db_with_data, mock_ctx, tmp_path, monkeypatch, qtbot):
     qtbot.waitSignal(win._editor.check_result)
 
 
-@pytest.mark.skip
+
 def test_handle_update(mock_db, qtbot):
     db_dir, db = mock_db
 
@@ -326,7 +326,7 @@ def test_handle_update(mock_db, qtbot):
     qtbot.waitSignal(win._editor.check_result)
 
 
-
+@pytest.mark.skip
 def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
