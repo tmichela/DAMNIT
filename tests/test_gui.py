@@ -797,7 +797,6 @@ def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, 
         warning.assert_not_called()
 
 
-@pytest.mark.skip
 def test_open_dialog(mock_db, qtbot):
     db_dir, db = mock_db
     dlg = OpenDBDialog()
