@@ -805,8 +805,7 @@ def test_open_dialog(mock_db, qtbot):
 
     # Test supplying a proposal number:
     with patch("damnit.gui.open_dialog.find_proposal", return_value=str(db_dir)):
-        with qtbot.waitSignal(dlg.proposal_finder.find_result) as ws:
-            ws.connect()
+        with qtbot.waitSignal(dlg.proposal_finder.find_result):
             dlg.ui.proposal_edit.setText('1234')
     dlg.accept()
     dlg.proposal_finder_thread.wait(2000)
