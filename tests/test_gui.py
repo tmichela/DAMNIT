@@ -277,6 +277,8 @@ def test_settings(mock_db_with_data, mock_ctx, tmp_path, monkeypatch, qtbot):
     win.autoconfigure(db_dir)
     assert headers == visible_headers()
 
+    qtbot.waitSignal(win._editor.check_result)
+
 def test_handle_update(mock_db, qtbot):
     db_dir, db = mock_db
 
@@ -345,6 +347,8 @@ def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
         "string": "foo"
     }
     win.handle_update(msg)
+
+    qtbot.waitSignal(win._editor.check_result)
 
 def test_autoconfigure(tmp_path, bound_port, request, qtbot):
     db_dir = tmp_path / "usr/Shared/amore"
@@ -788,7 +792,8 @@ def test_open_dialog(mock_db, qtbot):
 
     # Test supplying a proposal number:
     with patch("damnit.gui.open_dialog.find_proposal", return_value=str(db_dir)):
-        with qtbot.waitSignal(dlg.proposal_finder.find_result):
+        with qtbot.waitSignal(dlg.proposal_finder.find_result) as ws:
+            ws.connect()
             dlg.ui.proposal_edit.setText('1234')
     dlg.accept()
     dlg.proposal_finder_thread.wait(2000)
