@@ -869,6 +869,9 @@ def test_zulip(mock_db_with_data, monkeypatch, qtbot):
 
         messenger.send_table.assert_called_once()
 
+    qtbot.waitSignal(win._editor.check_result)
+    win.close()
+
 
 # @pytest.mark.parametrize("extension", [".xlsx", ".csv"])
 # def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
