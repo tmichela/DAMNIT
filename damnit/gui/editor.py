@@ -97,12 +97,12 @@ class Editor(QsciScintilla):
 
         self._file_checker_thread = None
 
-    # def closeEvent(self, event):
-    #     if self._file_checker_thread is not None:
-    #         self._file_checker_thread.exit()
-    #         self._file_checker_thread.wait()
-    #         self._file_checker_thread = None
-    #     super().closeEvent(event)
+    def closeEvent(self, event):
+        if self._file_checker_thread is not None:
+            self._file_checker_thread.exit()
+            self._file_checker_thread.wait()
+            self._file_checker_thread = None
+        super().closeEvent(event)
 
     def launch_test_context(self, db):
         context_python = db.metameta.get("context_python")
