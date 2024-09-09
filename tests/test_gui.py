@@ -784,7 +784,7 @@ def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, 
         win.inspect_data(mean_2d_index)
         warning.assert_not_called()
 
-    # qtbot.waitSignal(win._editor.check_result)
+    qtbot.waitSignal(win._editor.check_result)
 
 
 def test_open_dialog(mock_db, qtbot):
