@@ -807,6 +807,7 @@ def test_open_dialog(mock_db, qtbot):
     assert dlg.get_chosen_dir() == db_dir
     assert dlg.get_proposal_num() is None
 
+
 def test_zulip(mock_db_with_data, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
