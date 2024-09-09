@@ -42,15 +42,25 @@ def test_connect_to_kafka(mock_db, qtbot):
 
     with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
          patch(f"{pkg}.KafkaProducer") as kafka_prd:
-        MainWindow(db_dir, False).close()
+        win = MainWindow(db_dir, False)
+
         kafka_cns.assert_not_called()
         kafka_prd.assert_not_called()
 
+        qtbot.addWidget(win)
+        qtbot.waitSignal(win._editor.check_result)
+        win.close()
+
     with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
          patch(f"{pkg}.KafkaProducer") as kafka_prd:
-        MainWindow(db_dir, True).close()
+        win = MainWindow(db_dir, True).close()
+
         kafka_cns.assert_called_once()
         kafka_prd.assert_called_once()
+
+        qtbot.addWidget(win)
+        qtbot.waitSignal(win._editor.check_result)
+        win.close()
 
 @pytest.mark.skip
 def test_editor(mock_db, mock_ctx, qtbot):
