@@ -919,7 +919,6 @@ def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
     assert df["Image"][0] == "<image>"
 
 
-@pytest.mark.skip
 def test_delete_variable(mock_db_with_data, qtbot, monkeypatch):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
