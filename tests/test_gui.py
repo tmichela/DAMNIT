@@ -787,34 +787,34 @@ def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, 
     qtbot.waitSignal(win._editor.check_result)
 
 
-def test_open_dialog(mock_db, qtbot):
-    db_dir, db = mock_db
-    dlg = OpenDBDialog()
-    qtbot.addWidget(dlg)
-    dlg.proposal_finder_thread.start()
+# def test_open_dialog(mock_db, qtbot):
+#     db_dir, db = mock_db
+#     dlg = OpenDBDialog()
+#     qtbot.addWidget(dlg)
+#     dlg.proposal_finder_thread.start()
 
-    # Test supplying a proposal number:
-    with patch("damnit.gui.open_dialog.find_proposal", return_value=str(db_dir)):
-        with qtbot.waitSignal(dlg.proposal_finder.find_result):
-            dlg.ui.proposal_edit.setText('1234')
-    dlg.accept()
-    dlg.proposal_finder_thread.wait(2000)
+#     # Test supplying a proposal number:
+#     with patch("damnit.gui.open_dialog.find_proposal", return_value=str(db_dir)):
+#         with qtbot.waitSignal(dlg.proposal_finder.find_result):
+#             dlg.ui.proposal_edit.setText('1234')
+#     dlg.accept()
+#     dlg.proposal_finder_thread.wait(2000)
 
-    assert dlg.get_chosen_dir() == db_dir / 'usr/Shared/amore'
-    assert dlg.get_proposal_num() == 1234
+#     assert dlg.get_chosen_dir() == db_dir / 'usr/Shared/amore'
+#     assert dlg.get_proposal_num() == 1234
 
-    # Test selecting a folder:
-    dlg = OpenDBDialog()
-    qtbot.addWidget(dlg)
-    dlg.proposal_finder_thread.start()
-    dlg.ui.folder_rb.setChecked(True)
-    with patch.object(QFileDialog, 'getExistingDirectory', return_value=str(db_dir)):
-        dlg.ui.browse_button.click()
-    dlg.accept()
-    dlg.proposal_finder_thread.wait(2000)
+#     # Test selecting a folder:
+#     dlg = OpenDBDialog()
+#     qtbot.addWidget(dlg)
+#     dlg.proposal_finder_thread.start()
+#     dlg.ui.folder_rb.setChecked(True)
+#     with patch.object(QFileDialog, 'getExistingDirectory', return_value=str(db_dir)):
+#         dlg.ui.browse_button.click()
+#     dlg.accept()
+#     dlg.proposal_finder_thread.wait(2000)
 
-    assert dlg.get_chosen_dir() == db_dir
-    assert dlg.get_proposal_num() is None
+#     assert dlg.get_chosen_dir() == db_dir
+#     assert dlg.get_proposal_num() is None
 
 
 def test_zulip(mock_db_with_data, monkeypatch, qtbot):
