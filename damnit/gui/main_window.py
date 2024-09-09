@@ -848,7 +848,7 @@ da-dev@xfel.eu"""
         # user that something happened.
         self._error_widget.setText("")
 
-        def _set_error_text(_text):
+        def _set_error_text():
             try:
                 self._error_widget.setText(text)
             except RuntimeError:

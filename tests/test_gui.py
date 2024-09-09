@@ -552,6 +552,8 @@ def test_user_vars(mock_ctx_user, mock_user_vars, mock_db, qtbot):
     table_model = win.table
     sortproxy = table_view.model()
 
+    qtbot.waitSignal(win._editor.check_result)
+
     def open_editor_and_get_delegate(field_name, row_number = 0):
         col_num = table_model.find_column(field_name)
         table_view.edit(sortproxy.mapFromSource(table_model.index(row_number, col_num)))
