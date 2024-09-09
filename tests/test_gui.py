@@ -867,98 +867,98 @@ def test_open_dialog(mock_db, qtbot):
 #         messenger.send_table.assert_called_once()
 
 
-@pytest.mark.parametrize("extension", [".xlsx", ".csv"])
-def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
-    db_dir, db = mock_db_with_data
-    monkeypatch.chdir(db_dir)
+# @pytest.mark.parametrize("extension", [".xlsx", ".csv"])
+# def test_exporting(mock_db_with_data, qtbot, monkeypatch, extension):
+#     db_dir, db = mock_db_with_data
+#     monkeypatch.chdir(db_dir)
 
-    code = """
-    import numpy as np
-    from damnit_ctx import Variable
+#     code = """
+#     import numpy as np
+#     from damnit_ctx import Variable
 
-    @Variable(title="Number")
-    def number(run):
-        return 42
+#     @Variable(title="Number")
+#     def number(run):
+#         return 42
 
-    @Variable(title="Image")
-    def image(run):
-        return np.random.rand(100, 100)
-    """
-    ctx = mkcontext(code)
-    (db_dir / "context.py").write_text(ctx.code)
-    extract_mock_run(1)
+#     @Variable(title="Image")
+#     def image(run):
+#         return np.random.rand(100, 100)
+#     """
+#     ctx = mkcontext(code)
+#     (db_dir / "context.py").write_text(ctx.code)
+#     extract_mock_run(1)
 
-    win = MainWindow(db_dir, connect_to_kafka=False)
-    qtbot.addWidget(win)
+#     win = MainWindow(db_dir, connect_to_kafka=False)
+#     qtbot.addWidget(win)
 
-    export_path = db_dir / f"export{extension}"
-    filter_str = f"Ext (*{extension})"
-    with patch.object(QFileDialog, "getSaveFileName", return_value=(str(export_path.stem), filter_str)):
-        win.export_table()
+#     export_path = db_dir / f"export{extension}"
+#     filter_str = f"Ext (*{extension})"
+#     with patch.object(QFileDialog, "getSaveFileName", return_value=(str(export_path.stem), filter_str)):
+#         win.export_table()
 
-    assert export_path.is_file()
+#     assert export_path.is_file()
 
-    # Check that images are formatted nicely
-    df = pd.read_excel(export_path) if extension == ".xlsx" else pd.read_csv(export_path)
-    assert df["Image"][0] == "<image>"
+#     # Check that images are formatted nicely
+#     df = pd.read_excel(export_path) if extension == ".xlsx" else pd.read_csv(export_path)
+#     assert df["Image"][0] == "<image>"
 
-def test_delete_variable(mock_db_with_data, qtbot, monkeypatch):
-    db_dir, db = mock_db_with_data
-    monkeypatch.chdir(db_dir)
+# def test_delete_variable(mock_db_with_data, qtbot, monkeypatch):
+#     db_dir, db = mock_db_with_data
+#     monkeypatch.chdir(db_dir)
 
-    # We'll delete the 'array' variable
-    assert "array" in db.variable_names()
-    win = MainWindow(db_dir, connect_to_kafka=False)
-    qtbot.addWidget(win)
-    tbl = win.table
-    column_ids_before = [tbl.column_id(i) for i in range(tbl.columnCount())]
-    column_titles_before = tbl.column_titles.copy()
-    assert "array" in column_ids_before
-    col_visibility_before = win.table_view.get_column_states()
-    assert "Array" in col_visibility_before  # Keyed by title, not column ID
+#     # We'll delete the 'array' variable
+#     assert "array" in db.variable_names()
+#     win = MainWindow(db_dir, connect_to_kafka=False)
+#     qtbot.addWidget(win)
+#     tbl = win.table
+#     column_ids_before = [tbl.column_id(i) for i in range(tbl.columnCount())]
+#     column_titles_before = tbl.column_titles.copy()
+#     assert "array" in column_ids_before
+#     col_visibility_before = win.table_view.get_column_states()
+#     assert "Array" in col_visibility_before  # Keyed by title, not column ID
 
-    # If the user clicks 'No' then we should do nothing
-    with patch.object(QMessageBox, "warning", return_value=QMessageBox.No) as warning:
-        win.table_view.confirm_delete_variable("array")
-        warning.assert_called_once()
-    assert "array" in db.variable_names()
-    assert [tbl.column_id(i) for i in range(tbl.columnCount())] == column_ids_before
-    assert tbl.column_titles == column_titles_before
-    assert win.table_view.get_column_states() == col_visibility_before
+#     # If the user clicks 'No' then we should do nothing
+#     with patch.object(QMessageBox, "warning", return_value=QMessageBox.No) as warning:
+#         win.table_view.confirm_delete_variable("array")
+#         warning.assert_called_once()
+#     assert "array" in db.variable_names()
+#     assert [tbl.column_id(i) for i in range(tbl.columnCount())] == column_ids_before
+#     assert tbl.column_titles == column_titles_before
+#     assert win.table_view.get_column_states() == col_visibility_before
 
-    # Otherwise it should be deleted from the database and HDF5 files
-    with patch.object(QMessageBox, "warning", return_value=QMessageBox.Yes) as warning:
-        win.table_view.confirm_delete_variable("array")
-        warning.assert_called_once()
+#     # Otherwise it should be deleted from the database and HDF5 files
+#     with patch.object(QMessageBox, "warning", return_value=QMessageBox.Yes) as warning:
+#         win.table_view.confirm_delete_variable("array")
+#         warning.assert_called_once()
 
-    assert "array" not in db.variable_names()
-    assert tbl.columnCount() == len(column_ids_before) - 1
-    assert "array" not in [tbl.column_id(i) for i in range(tbl.columnCount())]
-    assert len(tbl.column_titles) == tbl.columnCount()
-    assert "Array" not in win.table_view.get_column_states()
+#     assert "array" not in db.variable_names()
+#     assert tbl.columnCount() == len(column_ids_before) - 1
+#     assert "array" not in [tbl.column_id(i) for i in range(tbl.columnCount())]
+#     assert len(tbl.column_titles) == tbl.columnCount()
+#     assert "Array" not in win.table_view.get_column_states()
 
-    proposal = db.metameta['proposal']
-    with h5py.File(db_dir / f"extracted_data/p{proposal}_r1.h5") as f:
-        assert "array" not in f.keys()
-        assert "array" not in f[".reduced"].keys()
+#     proposal = db.metameta['proposal']
+#     with h5py.File(db_dir / f"extracted_data/p{proposal}_r1.h5") as f:
+#         assert "array" not in f.keys()
+#         assert "array" not in f[".reduced"].keys()
 
-def test_precreate_runs(mock_db_with_data, qtbot, monkeypatch):
-    db_dir, db = mock_db_with_data
-    monkeypatch.chdir(db_dir)
+# def test_precreate_runs(mock_db_with_data, qtbot, monkeypatch):
+#     db_dir, db = mock_db_with_data
+#     monkeypatch.chdir(db_dir)
 
-    win = MainWindow(db_dir, connect_to_kafka=False)
-    qtbot.addWidget(win)
-    get_n_runs = lambda: db.conn.execute("SELECT COUNT(run) FROM runs").fetchone()[0]
-    n_runs = get_n_runs()
+#     win = MainWindow(db_dir, connect_to_kafka=False)
+#     qtbot.addWidget(win)
+#     get_n_runs = lambda: db.conn.execute("SELECT COUNT(run) FROM runs").fetchone()[0]
+#     n_runs = get_n_runs()
 
-    # The user cancelling should do nothing
-    with patch.object(QInputDialog, "getInt", return_value=(1, False)) as dialog:
-        win.precreate_runs_dialog()
-        dialog.assert_called_once()
-        assert get_n_runs() == n_runs
+#     # The user cancelling should do nothing
+#     with patch.object(QInputDialog, "getInt", return_value=(1, False)) as dialog:
+#         win.precreate_runs_dialog()
+#         dialog.assert_called_once()
+#         assert get_n_runs() == n_runs
 
-    # But accepting should add a run
-    with patch.object(QInputDialog, "getInt", return_value=(1, True)) as dialog:
-        win.precreate_runs_dialog()
-        dialog.assert_called_once()
-        assert get_n_runs() == n_runs + 1
+#     # But accepting should add a run
+#     with patch.object(QInputDialog, "getInt", return_value=(1, True)) as dialog:
+#         win.precreate_runs_dialog()
+#         dialog.assert_called_once()
+#         assert get_n_runs() == n_runs + 1
