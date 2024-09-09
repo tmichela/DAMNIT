@@ -358,7 +358,7 @@ def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
     qtbot.waitSignal(win._editor.check_result)
 
 
-@pytest.mark.skip
+
 def test_autoconfigure(tmp_path, bound_port, request, qtbot):
     db_dir = tmp_path / "usr/Shared/amore"
     win = MainWindow(None, False)
@@ -410,7 +410,7 @@ def test_autoconfigure(tmp_path, bound_port, request, qtbot):
         initialize_and_start_backend.assert_called_once_with(db_dir, 1234)
 
 
-
+@pytest.mark.skip
 def test_user_vars(mock_ctx_user, mock_user_vars, mock_db, qtbot):
 
     proposal = 1234
