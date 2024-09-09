@@ -961,3 +961,5 @@ def test_precreate_runs(mock_db_with_data, qtbot, monkeypatch):
         win.precreate_runs_dialog()
         dialog.assert_called_once()
         assert get_n_runs() == n_runs + 1
+
+    qtbot.waitSignal(win._editor.check_result)
