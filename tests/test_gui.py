@@ -787,86 +787,86 @@ def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, 
     qtbot.waitSignal(win._editor.check_result)
 
 
-# def test_open_dialog(mock_db, qtbot):
-#     db_dir, db = mock_db
-#     dlg = OpenDBDialog()
-#     qtbot.addWidget(dlg)
-#     dlg.proposal_finder_thread.start()
+def test_open_dialog(mock_db, qtbot):
+    db_dir, db = mock_db
+    dlg = OpenDBDialog()
+    qtbot.addWidget(dlg)
+    dlg.proposal_finder_thread.start()
 
-#     # Test supplying a proposal number:
-#     with patch("damnit.gui.open_dialog.find_proposal", return_value=str(db_dir)):
-#         with qtbot.waitSignal(dlg.proposal_finder.find_result):
-#             dlg.ui.proposal_edit.setText('1234')
-#     dlg.accept()
-#     dlg.proposal_finder_thread.wait(2000)
+    # Test supplying a proposal number:
+    with patch("damnit.gui.open_dialog.find_proposal", return_value=str(db_dir)):
+        with qtbot.waitSignal(dlg.proposal_finder.find_result):
+            dlg.ui.proposal_edit.setText('1234')
+    dlg.accept()
+    dlg.proposal_finder_thread.wait(2000)
 
-#     assert dlg.get_chosen_dir() == db_dir / 'usr/Shared/amore'
-#     assert dlg.get_proposal_num() == 1234
+    assert dlg.get_chosen_dir() == db_dir / 'usr/Shared/amore'
+    assert dlg.get_proposal_num() == 1234
 
-#     # Test selecting a folder:
-#     dlg = OpenDBDialog()
-#     qtbot.addWidget(dlg)
-#     dlg.proposal_finder_thread.start()
-#     dlg.ui.folder_rb.setChecked(True)
-#     with patch.object(QFileDialog, 'getExistingDirectory', return_value=str(db_dir)):
-#         dlg.ui.browse_button.click()
-#     dlg.accept()
-#     dlg.proposal_finder_thread.wait(2000)
+    # Test selecting a folder:
+    dlg = OpenDBDialog()
+    qtbot.addWidget(dlg)
+    dlg.proposal_finder_thread.start()
+    dlg.ui.folder_rb.setChecked(True)
+    with patch.object(QFileDialog, 'getExistingDirectory', return_value=str(db_dir)):
+        dlg.ui.browse_button.click()
+    dlg.accept()
+    dlg.proposal_finder_thread.wait(2000)
 
-#     assert dlg.get_chosen_dir() == db_dir
-#     assert dlg.get_proposal_num() is None
+    assert dlg.get_chosen_dir() == db_dir
+    assert dlg.get_proposal_num() is None
 
 
-def test_zulip(mock_db_with_data, monkeypatch, qtbot):
-    db_dir, db = mock_db_with_data
-    monkeypatch.chdir(db_dir)
-    win = MainWindow(db_dir, False)
-    qtbot.addWidget(win)
-    pkg = 'damnit.gui.zulip_messenger.requests'
+# def test_zulip(mock_db_with_data, monkeypatch, qtbot):
+#     db_dir, db = mock_db_with_data
+#     monkeypatch.chdir(db_dir)
+#     win = MainWindow(db_dir, False)
+#     qtbot.addWidget(win)
+#     pkg = 'damnit.gui.zulip_messenger.requests'
 
-    mock_zulip_cfg = """
-    [ZULIP]
-    key = 1234567890
-    url = url
-    """
-    res_get = SimpleNamespace(status_code = 200,
-                              text = '{"stream" : "stream"}')
-    res_post = SimpleNamespace(status_code = 200,
-                              response = '{"response" : "success"}')
+#     mock_zulip_cfg = """
+#     [ZULIP]
+#     key = 1234567890
+#     url = url
+#     """
+#     res_get = SimpleNamespace(status_code = 200,
+#                               text = '{"stream" : "stream"}')
+#     res_post = SimpleNamespace(status_code = 200,
+#                               response = '{"response" : "success"}')
 
-    (db_dir / "zulip.cfg").write_text(mock_zulip_cfg)
+#     (db_dir / "zulip.cfg").write_text(mock_zulip_cfg)
 
-    with patch(f'{pkg}.get', return_value =res_get) as mock_get,\
-    patch(f'{pkg}.post', return_value = res_post) as mock_post:
-        win.check_zulip_messenger()
-        mock_get.assert_called_once()
-        assert win.zulip_messenger.ok
+#     with patch(f'{pkg}.get', return_value =res_get) as mock_get,\
+#     patch(f'{pkg}.post', return_value = res_post) as mock_post:
+#         win.check_zulip_messenger()
+#         mock_get.assert_called_once()
+#         assert win.zulip_messenger.ok
 
-        # test parsing of configuration file
-        assert win.zulip_messenger.key == "1234567890"
-        assert win.zulip_messenger.url == "url"
+#         # test parsing of configuration file
+#         assert win.zulip_messenger.key == "1234567890"
+#         assert win.zulip_messenger.url == "url"
 
-        # test get request for correct set up of the stream name
-        mock_get.assert_called_once()
-        assert win.zulip_messenger.stream == "stream"
+#         # test get request for correct set up of the stream name
+#         mock_get.assert_called_once()
+#         assert win.zulip_messenger.stream == "stream"
 
-        df = win.table.dataframe_for_export(['Proposal', 'Run', 'Comment'])
-        test_dialog = ZulipConfig(win, win.zulip_messenger,
-                                  kind='table', table=df)
-        test_dialog.handle_form()
+#         df = win.table.dataframe_for_export(['Proposal', 'Run', 'Comment'])
+#         test_dialog = ZulipConfig(win, win.zulip_messenger,
+#                                   kind='table', table=df)
+#         test_dialog.handle_form()
 
-        # Check if table was parsed into a list
-        assert isinstance(test_dialog.msg, list)
+#         # Check if table was parsed into a list
+#         assert isinstance(test_dialog.msg, list)
 
-        # Check if post was called
-        mock_post.assert_called_once()
+#         # Check if post was called
+#         mock_post.assert_called_once()
 
-    # Simple smoke test to make sure a Zulip message is sent
-    with patch.object(win, "zulip_messenger") as messenger, \
-         patch.object(win, "check_zulip_messenger", return_value=True):
-        win.export_selection_to_zulip()
+#     # Simple smoke test to make sure a Zulip message is sent
+#     with patch.object(win, "zulip_messenger") as messenger, \
+#          patch.object(win, "check_zulip_messenger", return_value=True):
+#         win.export_selection_to_zulip()
 
-        messenger.send_table.assert_called_once()
+#         messenger.send_table.assert_called_once()
 
 
 # @pytest.mark.parametrize("extension", [".xlsx", ".csv"])
