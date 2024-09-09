@@ -316,6 +316,8 @@ def test_handle_update(mock_db, qtbot):
     assert len(headers) + 1 == len(get_headers())
     assert "unexpected_var" in get_headers()
 
+    qtbot.waitSignal(win._editor.check_result)
+
 def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
