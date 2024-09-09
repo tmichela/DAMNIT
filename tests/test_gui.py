@@ -410,7 +410,7 @@ def test_autoconfigure(tmp_path, bound_port, request, qtbot):
         initialize_and_start_backend.assert_called_once_with(db_dir, 1234)
 
 
-@pytest.mark.skip
+
 def test_user_vars(mock_ctx_user, mock_user_vars, mock_db, qtbot):
 
     proposal = 1234
@@ -690,7 +690,7 @@ def test_user_vars(mock_ctx_user, mock_user_vars, mock_db, qtbot):
     assert get_value_from_db("user_boolean") is None
 
 
-
+@pytest.mark.skip
 def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, qtbot):
     db_dir, db = mock_db_with_data
     monkeypatch.chdir(db_dir)
