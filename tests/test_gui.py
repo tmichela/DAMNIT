@@ -717,79 +717,77 @@ def test_table_and_plotting(mock_db_with_data, mock_ctx, mock_run, monkeypatch, 
     win = MainWindow(db_dir, False)
     qtbot.addWidget(win)
 
-    # Helper function to get a QModelIndex from a variable title
-    def get_index(title, row=0):
-        col = win.table.find_column(title, by_title=True)
-        index = win.table.index(row, col)
-        assert index.isValid()
-        return index
+    with qtbot.waitSignal(win._editor.check_result):
+        # Helper function to get a QModelIndex from a variable title
+        def get_index(title, row=0):
+            col = win.table.find_column(title, by_title=True)
+            index = win.table.index(row, col)
+            assert index.isValid()
+            return index
 
-    # We should be able to plot summaries
-    win.plot._combo_box_x_axis.setCurrentText("Array")
-    win.plot._combo_box_y_axis.setCurrentText("Constant array")
+        # We should be able to plot summaries
+        win.plot._combo_box_x_axis.setCurrentText("Array")
+        win.plot._combo_box_y_axis.setCurrentText("Constant array")
 
-    with patch.object(QMessageBox, "warning") as warning:
-        win.plot._plot_summaries_clicked()
-        warning.assert_not_called()
+        with patch.object(QMessageBox, "warning") as warning:
+            win.plot._plot_summaries_clicked()
+            warning.assert_not_called()
 
-    # And plot an array
-    array_index = get_index("Array")
-    with patch.object(QMessageBox, "warning") as warning:
-        win.inspect_data(array_index)
-        warning.assert_not_called()
+        # And plot an array
+        array_index = get_index("Array")
+        with patch.object(QMessageBox, "warning") as warning:
+            win.inspect_data(array_index)
+            warning.assert_not_called()
 
-    # And correlate two array variables
-    array_sorted_idx = win.table_view.model().mapFromSource(array_index)
-    win.table_view.setCurrentIndex(array_sorted_idx)
-    with patch.object(QMessageBox, "warning") as warning:
-        win.plot._plot_run_data_clicked()
-        warning.assert_not_called()
+        # And correlate two array variables
+        array_sorted_idx = win.table_view.model().mapFromSource(array_index)
+        win.table_view.setCurrentIndex(array_sorted_idx)
+        with patch.object(QMessageBox, "warning") as warning:
+            win.plot._plot_run_data_clicked()
+            warning.assert_not_called()
 
-    # Check that the text for the array that changes is bold
-    assert win.table.data(array_index, role=Qt.FontRole).bold()
+        # Check that the text for the array that changes is bold
+        assert win.table.data(array_index, role=Qt.FontRole).bold()
 
-    # But not for the constant array
-    const_array_index = get_index("Constant array")
-    assert win.table.data(const_array_index, role=Qt.FontRole) is None
+        # But not for the constant array
+        const_array_index = get_index("Constant array")
+        assert win.table.data(const_array_index, role=Qt.FontRole) is None
 
-    # Edit a comment
-    comment_index = get_index("Comment")
-    win.table.setData(comment_index, "Foo", Qt.EditRole)
+        # Edit a comment
+        comment_index = get_index("Comment")
+        win.table.setData(comment_index, "Foo", Qt.EditRole)
 
-    # Add a standalone comment
-    row_count = win.table.rowCount()
-    win.comment.setText("Bar")
-    win._comment_button_clicked()
-    assert win.table.rowCount() == row_count + 1
+        # Add a standalone comment
+        row_count = win.table.rowCount()
+        win.comment.setText("Bar")
+        win._comment_button_clicked()
+        assert win.table.rowCount() == row_count + 1
 
-    # Edit a standalone comment
-    comment_index = get_index("Comment", row=1)
-    win.table.setData(comment_index, "Foo", Qt.EditRole)
+        # Edit a standalone comment
+        comment_index = get_index("Comment", row=1)
+        win.table.setData(comment_index, "Foo", Qt.EditRole)
 
-    # Check that 2D arrays are treated as images
-    image_index = get_index("Image")
-    assert isinstance(win.table.data(image_index, role=Qt.DecorationRole), QPixmap)
-    with patch.object(QMessageBox, "warning") as warning:
-        win.inspect_data(image_index)
-        warning.assert_not_called()
+        # Check that 2D arrays are treated as images
+        image_index = get_index("Image")
+        assert isinstance(win.table.data(image_index, role=Qt.DecorationRole), QPixmap)
+        with patch.object(QMessageBox, "warning") as warning:
+            win.inspect_data(image_index)
+            warning.assert_not_called()
 
-    # And that 3D image arrays are also treated as images
-    color_image_index = get_index("Color image")
-    assert isinstance(win.table.data(color_image_index, role=Qt.DecorationRole), QPixmap)
-    with patch.object(QMessageBox, "warning") as warning:
-        win.inspect_data(color_image_index)
-        warning.assert_not_called()
+        # And that 3D image arrays are also treated as images
+        color_image_index = get_index("Color image")
+        assert isinstance(win.table.data(color_image_index, role=Qt.DecorationRole), QPixmap)
+        with patch.object(QMessageBox, "warning") as warning:
+            win.inspect_data(color_image_index)
+            warning.assert_not_called()
 
-    # Check that 2D arrays with summary are inspectable
-    mean_2d_index = get_index('2D data with summary')
-    assert win.table.data(mean_2d_index, role=Qt.FontRole).bold()
-    assert isinstance(win.table.data(mean_2d_index, role=Qt.DisplayRole), str)
-    with patch.object(QMessageBox, "warning") as warning:
-        win.inspect_data(mean_2d_index)
-        warning.assert_not_called()
-
-    qtbot.waitSignal(win._editor.check_result)
-    win.close()
+        # Check that 2D arrays with summary are inspectable
+        mean_2d_index = get_index('2D data with summary')
+        assert win.table.data(mean_2d_index, role=Qt.FontRole).bold()
+        assert isinstance(win.table.data(mean_2d_index, role=Qt.DisplayRole), str)
+        with patch.object(QMessageBox, "warning") as warning:
+            win.inspect_data(mean_2d_index)
+            warning.assert_not_called()
 
 
 def test_open_dialog(mock_db, qtbot):
