@@ -36,372 +36,372 @@ def pid_dead(pid):
         return True
 
 
-# def test_connect_to_kafka(mock_db, qtbot):
-#     db_dir, db = mock_db
-#     pkg = "damnit.gui.kafka"
-
-#     with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
-#          patch(f"{pkg}.KafkaProducer") as kafka_prd:
-#         win = MainWindow(db_dir, False)
-
-#         with qtbot.waitSignal(win._editor.check_result):
-#             kafka_cns.assert_not_called()
-#             kafka_prd.assert_not_called()
-
-#         win.close()
-
-#     with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
-#          patch(f"{pkg}.KafkaProducer") as kafka_prd:
-#         win = MainWindow(db_dir, True)
-
-#         with qtbot.waitSignal(win._editor.check_result):
-#             kafka_cns.assert_called_once()
-#             kafka_prd.assert_called_once()
-
-#         win.close()
-
-
-# def test_editor(mock_db, mock_ctx, qtbot):
-#     db_dir, db = mock_db
-#     ctx_path = db_dir / "context.py"
-#     ctx_path.write_text(mock_ctx.code)
-
-#     win = MainWindow(db_dir, False)
-#     win.show()
-#     qtbot.addWidget(win)
-#     editor = win._editor
-#     status_bar = win._status_bar
-
-#     # If the context file is not saved, the window will prompt the user about
-#     # it. This makes the tests hang, so before closing the window we manually
-#     # mark the context as saved. Useful if a test fails for some reason while
-#     # the context is changed.
-#     qtbot.addWidget(win, before_close_func=lambda win: win.mark_context_saved())
-#     qtbot.waitExposed(win)
-
-#     # Loading a database should also load the context file
-#     assert editor.text() == mock_ctx.code
-#     assert "inspect results" in status_bar.currentMessage()
-
-#     # Changing to the editor tab should show the full context file path in the
-#     # status bar.
-#     win._tab_widget.setCurrentIndex(1)
-#     assert status_bar.currentMessage() == str(ctx_path.resolve())
-
-#     # When the text is changed, instructions to save the context file should be shown
-#     old_code = "x = 1"
-#     editor.setText(old_code)
-#     assert "Ctrl + S" in status_bar.currentMessage()
-
-#     # Saving OK code should work
-#     with qtbot.waitSignal(win.save_context_finished):
-#         win._save_btn.clicked.emit()
-#     assert ctx_path.read_text() == old_code
-
-#     with qtbot.waitSignal(editor.check_result) as sig:
-#         editor.launch_test_context(db)
-#     assert sig.args[0] == ContextTestResult.OK
-
-#     assert ctx_path.read_text() == old_code
-#     assert status_bar.currentMessage() == str(ctx_path.resolve())
-
-#     # The Validate button should trigger validation. Note that we mock
-#     # editor.test_context() function instead of MainWindow.test_context()
-#     # because the win._check_btn.clicked has already been connected to the
-#     # original function, so mocking it will not make Qt call the mock object.
-#     with patch.object(editor, "launch_test_context") as test_context:
-#         win._check_btn.clicked.emit()
-#         test_context.assert_called_once()
-
-#     # Change the context again
-#     new_code = "x = 2"
-#     editor.setText(new_code)
-
-#     # Cancelling should do nothing
-#     with patch.object(QMessageBox, "exec", return_value=QMessageBox.Cancel):
-#         win.close()
-#         assert win.isVisible()
-#         assert ctx_path.read_text() == old_code
-
-#     # 'Discard' should close the window but not save
-#     with patch.object(QMessageBox, "exec", return_value=QMessageBox.Discard):
-#         win.close()
-#         assert win.isHidden()
-#         assert ctx_path.read_text() == old_code
-
-#     # Show the window again
-#     win.show()
-#     qtbot.waitExposed(win)
-#     assert win.isVisible()
-
-#     # Save the valid code
-#     with qtbot.waitSignal(win.save_context_finished):
-#         win.save_context()
-#     assert ctx_path.read_text() == new_code
-
-#     # Attempting to save ERROR'ing code should not save anything
-#     editor.setText("123 = 456")
-#     with qtbot.waitSignal(win.save_context_finished):
-#         win.save_context()
-#     assert ctx_path.read_text() == new_code
-
-#     # But saving WARNING code should work
-#     warning_code = textwrap.dedent("""
-#     import numpy as np
-#     x = 1
-#     """)
-#     editor.setText(warning_code)
-#     with qtbot.waitSignal(editor.check_result) as sig:
-#         editor.launch_test_context(db)
-#     assert sig.args[0] == ContextTestResult.WARNING
-#     with qtbot.waitSignal(editor.check_result):
-#         win.save_context()
-#     assert ctx_path.read_text() == warning_code
-
-# def test_settings(mock_db_with_data, mock_ctx, tmp_path, monkeypatch, qtbot):
-#     db_dir, db = mock_db_with_data
-#     monkeypatch.chdir(db_dir)
-
-#     # Create the window with a mocked Path so that it saves the settings in the
-#     # home directory.
-#     with patch("pathlib.Path.home", return_value=tmp_path):
-#         win = MainWindow(db_dir, False)
-#     qtbot.addWidget(win)
-
-#     # Helper function to show the currently visible headers
-#     def visible_headers():
-#         header = win.table_view.horizontalHeader()
-#         headers = [header.model().headerData(header.logicalIndex(i), Qt.Horizontal) for i in range(header.count())
-#                    if not header.isSectionHidden(i)]
-#         return headers
-
-#     # Helper function to move a column from `from_idx` to `to_idx`. Column moves
-#     # are triggered by the user drag-and-dropping items in a QListWidget, but
-#     # unfortunately it seems well-nigh impossible to either simulate a
-#     # drag-and-drop with QTest or programmatically move a row in a QListWidget
-#     # (such that its models' rowsMoved() signal is emitted). Hence, this ugly
-#     # hack.
-#     def move_columns_manually(from_idx, to_idx):
-#         headers = visible_headers()
-#         col_one = headers[from_idx]
-#         col_two = headers[to_idx]
-#         columns = win.table_view._columns_widget
-#         col_one_item = columns.findItems(col_one, Qt.MatchExactly)[0]
-#         col_two_item = columns.findItems(col_two, Qt.MatchExactly)[0]
-#         old_idx = columns.row(col_two_item)
-
-#         from_row = columns.row(col_one_item)
-#         columns.takeItem(columns.row(col_one_item))
-#         columns.insertItem(old_idx, col_one_item)
-#         columns.setCurrentItem(col_one_item)
-#         win.table_view.item_moved(None, from_row, from_row,
-#                                   None, columns.row(col_one_item))
-
-#         return col_one, col_two
-
-#     # Opening a database and adding columns should have triggered a save, so the
-#     # settings directory should now exist.
-#     settings_db_path = tmp_path / ".local/state/damnit/settings.db"
-#     assert settings_db_path.parent.is_dir()
-
-#     columns_widget = win.table_view._columns_widget
-#     static_columns_widget = win.table_view._static_columns_widget
-
-#     last_col_item = columns_widget.item(columns_widget.count() - 1)
-#     last_col = last_col_item.text()
-
-#     # Hide a column
-#     assert last_col in visible_headers()
-#     last_col_item.setCheckState(Qt.Unchecked)
-#     headers = visible_headers()
-#     assert last_col not in headers
-
-#     # Reload the database to make sure the changes were saved
-#     win.autoconfigure(db_dir)
-#     assert headers == visible_headers()
-
-#     # Move a column
-#     headers = visible_headers()
-#     col_one, col_two = move_columns_manually(-1, -2)
-#     new_headers = visible_headers()
-#     assert new_headers.index(col_one) == headers.index(col_two)
-
-#     # Reconfigure to reload the settings
-#     win.autoconfigure(db_dir)
-
-#     # Check that they loaded correctly
-#     assert last_col not in visible_headers()
-#     assert visible_headers() == new_headers
-
-#     # Swapping the same columns again should restore the table to the state
-#     # before the first move.
-#     move_columns_manually(-1, -2)
-#     assert visible_headers() == headers
-
-#     # Shift by more than one column
-#     headers = visible_headers()
-#     col_one, col_two = move_columns_manually(5, -1)
-#     assert visible_headers().index(col_one) == headers.index(col_two)
-
-#     # Simulate adding a new column while the GUI is running
-#     msg = {
-#         "Proposal": 1234,
-#         "Run": 1,
-#         "new_var": 42
-#     }
-#     db.set_variable(msg["Proposal"], msg["Run"], "new_var", ReducedData(msg["new_var"]))
-#     win.handle_update(msg)
-
-#     # The new column should be at the end
-#     headers = visible_headers()
-#     assert "new_var" == headers[-1]
-
-#     # And after reloading the database, the ordering should be the same
-#     win.autoconfigure(db_dir)
-#     assert headers == visible_headers()
-
-#     # Simulate adding a new column while the GUI is *not* running
-#     db.set_variable(msg["Proposal"], msg["Run"], "newer_var", ReducedData("foo"))
-
-#     # Reload the database
-#     headers = visible_headers()
-#     win.autoconfigure(db_dir)
-
-#     # The new column should be at the end
-#     new_headers = visible_headers()
-#     assert headers == new_headers[:-1]
-#     assert "newer_var" == new_headers[-1]
-
-#     # Test hiding a static column
-#     static_columns_widget = win.table_view._static_columns_widget
-#     last_static_col_item = static_columns_widget.item(static_columns_widget.count() - 1)
-#     last_static_col = last_static_col_item.text()
-
-#     assert last_static_col in visible_headers()
-#     last_static_col_item.setCheckState(Qt.Unchecked)
-#     assert last_static_col not in visible_headers()
-
-#     # Reload the database
-#     headers = visible_headers()
-#     win.autoconfigure(db_dir)
-#     assert headers == visible_headers()
-
-# def test_handle_update(mock_db, qtbot):
-#     db_dir, db = mock_db
-
-#     win = MainWindow(db_dir, False)
-#     qtbot.addWidget(win)
-
-#     # Helper lambdas
-#     model = lambda: win.table_view.model()
-#     get_headers = lambda: [win.table_view.model().headerData(i, Qt.Horizontal)
-#                            for i in range(win.table_view.horizontalHeader().count())]
-
-#     # Sending an update should add a row to the table
-#     msg = {
-#         "Proposal": 1234,
-#         "Run": 1,
-#         "scalar1": 42,
-#         "string": "foo"
-#     }
-
-#     assert win.table.rowCount() == 0
-#     win.handle_update(msg)
-#     assert win.table.rowCount() == 1
-
-#     # Columns should be added for the new variables
-#     headers = get_headers()
-#     assert "Scalar1" in headers
-#     assert "string" in headers
-
-#     # Send an update for an existing row
-#     msg["scalar1"] = 43
-#     win.handle_update(msg)
-#     assert model().data(model().index(0, headers.index("Scalar1"))) == str(msg["scalar1"])
-
-#     # Add a new column to an existing row
-#     msg["unexpected_var"] = 7
-#     win.handle_update(msg)
-#     assert len(headers) + 1 == len(get_headers())
-#     assert "unexpected_var" in get_headers()
-
-# def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
-#     db_dir, db = mock_db_with_data
-#     monkeypatch.chdir(db_dir)
-
-#     win = MainWindow(db_dir, False)
-#     qtbot.addWidget(win)
-
-#     # Open 1 scatter plot
-#     win.plot._plot_summaries_clicked()
-#     assert len(win.plot._plot_windows) == 1
-
-#     # Open 1 histogram
-#     win.plot._toggle_probability_density.setChecked(True)
-#     win.plot._plot_summaries_clicked()
-#     assert len(win.plot._plot_windows) == 2
-#     assert [type(pw) for pw in win.plot._plot_windows] == [
-#         ScatterPlotWindow, HistogramPlotWindow
-#     ]
-
-#     extract_mock_run(2)
-#     msg = {
-#         "Proposal": 1234,
-#         "Run": 2,
-#         "scalar1": 42,
-#         "string": "foo"
-#     }
-#     win.handle_update(msg)
-
-# def test_autoconfigure(tmp_path, bound_port, request, qtbot):
-#     db_dir = tmp_path / "usr/Shared/amore"
-#     win = MainWindow(None, False)
-#     qtbot.addWidget(win)
-#     pkg = "damnit.gui.main_window"
-#     template_path = Path(damnit.__file__).parent / 'ctx-templates' / 'SA1_base.py'
-
-#     @contextmanager
-#     def helper_patch():
-#         # Patch things such that the GUI thinks we're on GPFS trying to open
-#         # p1234, and the user always wants to create a database and start the
-#         # backend.
-#         with (patch(f"{pkg}.OpenDBDialog.run_get_result", return_value=(db_dir, 1234)),
-#               patch(f"{pkg}.NewContextFileDialog.run_get_result", return_value=template_path),
-#               patch.object(QMessageBox, "question", return_value=QMessageBox.Yes),
-#               patch(f"{pkg}.initialize_and_start_backend") as initialize_and_start_backend,
-#               patch.object(win, "autoconfigure")):
-#             yield initialize_and_start_backend
-
-#     # Autoconfigure from scratch
-#     with (helper_patch() as initialize_and_start_backend,
-#           patch(f"{pkg}.backend_is_running", return_value=True)):
-#         win._menu_bar_autoconfigure()
-
-#         # We expect the database to be initialized and the backend started
-#         win.autoconfigure.assert_called_once_with(db_dir)
-#         initialize_and_start_backend.assert_called_once_with(db_dir, 1234, template_path)
-
-#     # Create the directory and database file to fake the database already existing
-#     db_dir.mkdir(parents=True)
-#     DamnitDB.from_dir(db_dir)
-
-#     # Autoconfigure with database present & backend 'running':
-#     with (helper_patch() as initialize_and_start_backend,
-#           patch(f"{pkg}.backend_is_running", return_value=True)):
-#         win._menu_bar_autoconfigure()
-
-#         # We expect the database to be initialized and the backend started
-#         win.autoconfigure.assert_called_once_with(db_dir)
-#         initialize_and_start_backend.assert_not_called()
-
-#     # Autoconfigure again, the GUI should start the backend again
-#     with (helper_patch() as initialize_and_start_backend,
-#           patch(f"{pkg}.backend_is_running", return_value=False)):
-#         win._menu_bar_autoconfigure()
-
-#         # This time the database is already initialized
-#         win.autoconfigure.assert_called_once_with(db_dir)
-#         initialize_and_start_backend.assert_called_once_with(db_dir, 1234)
+def test_connect_to_kafka(mock_db, qtbot):
+    db_dir, db = mock_db
+    pkg = "damnit.gui.kafka"
+
+    with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
+         patch(f"{pkg}.KafkaProducer") as kafka_prd:
+        win = MainWindow(db_dir, False)
+
+        with qtbot.waitSignal(win._editor.check_result):
+            kafka_cns.assert_not_called()
+            kafka_prd.assert_not_called()
+
+        win.close()
+
+    with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
+         patch(f"{pkg}.KafkaProducer") as kafka_prd:
+        win = MainWindow(db_dir, True)
+
+        with qtbot.waitSignal(win._editor.check_result):
+            kafka_cns.assert_called_once()
+            kafka_prd.assert_called_once()
+
+        win.close()
+
+
+def test_editor(mock_db, mock_ctx, qtbot):
+    db_dir, db = mock_db
+    ctx_path = db_dir / "context.py"
+    ctx_path.write_text(mock_ctx.code)
+
+    win = MainWindow(db_dir, False)
+    win.show()
+    qtbot.addWidget(win)
+    editor = win._editor
+    status_bar = win._status_bar
+
+    # If the context file is not saved, the window will prompt the user about
+    # it. This makes the tests hang, so before closing the window we manually
+    # mark the context as saved. Useful if a test fails for some reason while
+    # the context is changed.
+    qtbot.addWidget(win, before_close_func=lambda win: win.mark_context_saved())
+    qtbot.waitExposed(win)
+
+    # Loading a database should also load the context file
+    assert editor.text() == mock_ctx.code
+    assert "inspect results" in status_bar.currentMessage()
+
+    # Changing to the editor tab should show the full context file path in the
+    # status bar.
+    win._tab_widget.setCurrentIndex(1)
+    assert status_bar.currentMessage() == str(ctx_path.resolve())
+
+    # When the text is changed, instructions to save the context file should be shown
+    old_code = "x = 1"
+    editor.setText(old_code)
+    assert "Ctrl + S" in status_bar.currentMessage()
+
+    # Saving OK code should work
+    with qtbot.waitSignal(win.save_context_finished):
+        win._save_btn.clicked.emit()
+    assert ctx_path.read_text() == old_code
+
+    with qtbot.waitSignal(editor.check_result) as sig:
+        editor.launch_test_context(db)
+    assert sig.args[0] == ContextTestResult.OK
+
+    assert ctx_path.read_text() == old_code
+    assert status_bar.currentMessage() == str(ctx_path.resolve())
+
+    # The Validate button should trigger validation. Note that we mock
+    # editor.test_context() function instead of MainWindow.test_context()
+    # because the win._check_btn.clicked has already been connected to the
+    # original function, so mocking it will not make Qt call the mock object.
+    with patch.object(editor, "launch_test_context") as test_context:
+        win._check_btn.clicked.emit()
+        test_context.assert_called_once()
+
+    # Change the context again
+    new_code = "x = 2"
+    editor.setText(new_code)
+
+    # Cancelling should do nothing
+    with patch.object(QMessageBox, "exec", return_value=QMessageBox.Cancel):
+        win.close()
+        assert win.isVisible()
+        assert ctx_path.read_text() == old_code
+
+    # 'Discard' should close the window but not save
+    with patch.object(QMessageBox, "exec", return_value=QMessageBox.Discard):
+        win.close()
+        assert win.isHidden()
+        assert ctx_path.read_text() == old_code
+
+    # Show the window again
+    win.show()
+    qtbot.waitExposed(win)
+    assert win.isVisible()
+
+    # Save the valid code
+    with qtbot.waitSignal(win.save_context_finished):
+        win.save_context()
+    assert ctx_path.read_text() == new_code
+
+    # Attempting to save ERROR'ing code should not save anything
+    editor.setText("123 = 456")
+    with qtbot.waitSignal(win.save_context_finished):
+        win.save_context()
+    assert ctx_path.read_text() == new_code
+
+    # But saving WARNING code should work
+    warning_code = textwrap.dedent("""
+    import numpy as np
+    x = 1
+    """)
+    editor.setText(warning_code)
+    with qtbot.waitSignal(editor.check_result) as sig:
+        editor.launch_test_context(db)
+    assert sig.args[0] == ContextTestResult.WARNING
+    with qtbot.waitSignal(editor.check_result):
+        win.save_context()
+    assert ctx_path.read_text() == warning_code
+
+def test_settings(mock_db_with_data, mock_ctx, tmp_path, monkeypatch, qtbot):
+    db_dir, db = mock_db_with_data
+    monkeypatch.chdir(db_dir)
+
+    # Create the window with a mocked Path so that it saves the settings in the
+    # home directory.
+    with patch("pathlib.Path.home", return_value=tmp_path):
+        win = MainWindow(db_dir, False)
+    qtbot.addWidget(win)
+
+    # Helper function to show the currently visible headers
+    def visible_headers():
+        header = win.table_view.horizontalHeader()
+        headers = [header.model().headerData(header.logicalIndex(i), Qt.Horizontal) for i in range(header.count())
+                   if not header.isSectionHidden(i)]
+        return headers
+
+    # Helper function to move a column from `from_idx` to `to_idx`. Column moves
+    # are triggered by the user drag-and-dropping items in a QListWidget, but
+    # unfortunately it seems well-nigh impossible to either simulate a
+    # drag-and-drop with QTest or programmatically move a row in a QListWidget
+    # (such that its models' rowsMoved() signal is emitted). Hence, this ugly
+    # hack.
+    def move_columns_manually(from_idx, to_idx):
+        headers = visible_headers()
+        col_one = headers[from_idx]
+        col_two = headers[to_idx]
+        columns = win.table_view._columns_widget
+        col_one_item = columns.findItems(col_one, Qt.MatchExactly)[0]
+        col_two_item = columns.findItems(col_two, Qt.MatchExactly)[0]
+        old_idx = columns.row(col_two_item)
+
+        from_row = columns.row(col_one_item)
+        columns.takeItem(columns.row(col_one_item))
+        columns.insertItem(old_idx, col_one_item)
+        columns.setCurrentItem(col_one_item)
+        win.table_view.item_moved(None, from_row, from_row,
+                                  None, columns.row(col_one_item))
+
+        return col_one, col_two
+
+    # Opening a database and adding columns should have triggered a save, so the
+    # settings directory should now exist.
+    settings_db_path = tmp_path / ".local/state/damnit/settings.db"
+    assert settings_db_path.parent.is_dir()
+
+    columns_widget = win.table_view._columns_widget
+    static_columns_widget = win.table_view._static_columns_widget
+
+    last_col_item = columns_widget.item(columns_widget.count() - 1)
+    last_col = last_col_item.text()
+
+    # Hide a column
+    assert last_col in visible_headers()
+    last_col_item.setCheckState(Qt.Unchecked)
+    headers = visible_headers()
+    assert last_col not in headers
+
+    # Reload the database to make sure the changes were saved
+    win.autoconfigure(db_dir)
+    assert headers == visible_headers()
+
+    # Move a column
+    headers = visible_headers()
+    col_one, col_two = move_columns_manually(-1, -2)
+    new_headers = visible_headers()
+    assert new_headers.index(col_one) == headers.index(col_two)
+
+    # Reconfigure to reload the settings
+    win.autoconfigure(db_dir)
+
+    # Check that they loaded correctly
+    assert last_col not in visible_headers()
+    assert visible_headers() == new_headers
+
+    # Swapping the same columns again should restore the table to the state
+    # before the first move.
+    move_columns_manually(-1, -2)
+    assert visible_headers() == headers
+
+    # Shift by more than one column
+    headers = visible_headers()
+    col_one, col_two = move_columns_manually(5, -1)
+    assert visible_headers().index(col_one) == headers.index(col_two)
+
+    # Simulate adding a new column while the GUI is running
+    msg = {
+        "Proposal": 1234,
+        "Run": 1,
+        "new_var": 42
+    }
+    db.set_variable(msg["Proposal"], msg["Run"], "new_var", ReducedData(msg["new_var"]))
+    win.handle_update(msg)
+
+    # The new column should be at the end
+    headers = visible_headers()
+    assert "new_var" == headers[-1]
+
+    # And after reloading the database, the ordering should be the same
+    win.autoconfigure(db_dir)
+    assert headers == visible_headers()
+
+    # Simulate adding a new column while the GUI is *not* running
+    db.set_variable(msg["Proposal"], msg["Run"], "newer_var", ReducedData("foo"))
+
+    # Reload the database
+    headers = visible_headers()
+    win.autoconfigure(db_dir)
+
+    # The new column should be at the end
+    new_headers = visible_headers()
+    assert headers == new_headers[:-1]
+    assert "newer_var" == new_headers[-1]
+
+    # Test hiding a static column
+    static_columns_widget = win.table_view._static_columns_widget
+    last_static_col_item = static_columns_widget.item(static_columns_widget.count() - 1)
+    last_static_col = last_static_col_item.text()
+
+    assert last_static_col in visible_headers()
+    last_static_col_item.setCheckState(Qt.Unchecked)
+    assert last_static_col not in visible_headers()
+
+    # Reload the database
+    headers = visible_headers()
+    win.autoconfigure(db_dir)
+    assert headers == visible_headers()
+
+def test_handle_update(mock_db, qtbot):
+    db_dir, db = mock_db
+
+    win = MainWindow(db_dir, False)
+    qtbot.addWidget(win)
+
+    # Helper lambdas
+    model = lambda: win.table_view.model()
+    get_headers = lambda: [win.table_view.model().headerData(i, Qt.Horizontal)
+                           for i in range(win.table_view.horizontalHeader().count())]
+
+    # Sending an update should add a row to the table
+    msg = {
+        "Proposal": 1234,
+        "Run": 1,
+        "scalar1": 42,
+        "string": "foo"
+    }
+
+    assert win.table.rowCount() == 0
+    win.handle_update(msg)
+    assert win.table.rowCount() == 1
+
+    # Columns should be added for the new variables
+    headers = get_headers()
+    assert "Scalar1" in headers
+    assert "string" in headers
+
+    # Send an update for an existing row
+    msg["scalar1"] = 43
+    win.handle_update(msg)
+    assert model().data(model().index(0, headers.index("Scalar1"))) == str(msg["scalar1"])
+
+    # Add a new column to an existing row
+    msg["unexpected_var"] = 7
+    win.handle_update(msg)
+    assert len(headers) + 1 == len(get_headers())
+    assert "unexpected_var" in get_headers()
+
+def test_handle_update_plots(mock_db_with_data, monkeypatch, qtbot):
+    db_dir, db = mock_db_with_data
+    monkeypatch.chdir(db_dir)
+
+    win = MainWindow(db_dir, False)
+    qtbot.addWidget(win)
+
+    # Open 1 scatter plot
+    win.plot._plot_summaries_clicked()
+    assert len(win.plot._plot_windows) == 1
+
+    # Open 1 histogram
+    win.plot._toggle_probability_density.setChecked(True)
+    win.plot._plot_summaries_clicked()
+    assert len(win.plot._plot_windows) == 2
+    assert [type(pw) for pw in win.plot._plot_windows] == [
+        ScatterPlotWindow, HistogramPlotWindow
+    ]
+
+    extract_mock_run(2)
+    msg = {
+        "Proposal": 1234,
+        "Run": 2,
+        "scalar1": 42,
+        "string": "foo"
+    }
+    win.handle_update(msg)
+
+def test_autoconfigure(tmp_path, bound_port, request, qtbot):
+    db_dir = tmp_path / "usr/Shared/amore"
+    win = MainWindow(None, False)
+    qtbot.addWidget(win)
+    pkg = "damnit.gui.main_window"
+    template_path = Path(damnit.__file__).parent / 'ctx-templates' / 'SA1_base.py'
+
+    @contextmanager
+    def helper_patch():
+        # Patch things such that the GUI thinks we're on GPFS trying to open
+        # p1234, and the user always wants to create a database and start the
+        # backend.
+        with (patch(f"{pkg}.OpenDBDialog.run_get_result", return_value=(db_dir, 1234)),
+              patch(f"{pkg}.NewContextFileDialog.run_get_result", return_value=template_path),
+              patch.object(QMessageBox, "question", return_value=QMessageBox.Yes),
+              patch(f"{pkg}.initialize_and_start_backend") as initialize_and_start_backend,
+              patch.object(win, "autoconfigure")):
+            yield initialize_and_start_backend
+
+    # Autoconfigure from scratch
+    with (helper_patch() as initialize_and_start_backend,
+          patch(f"{pkg}.backend_is_running", return_value=True)):
+        win._menu_bar_autoconfigure()
+
+        # We expect the database to be initialized and the backend started
+        win.autoconfigure.assert_called_once_with(db_dir)
+        initialize_and_start_backend.assert_called_once_with(db_dir, 1234, template_path)
+
+    # Create the directory and database file to fake the database already existing
+    db_dir.mkdir(parents=True)
+    DamnitDB.from_dir(db_dir)
+
+    # Autoconfigure with database present & backend 'running':
+    with (helper_patch() as initialize_and_start_backend,
+          patch(f"{pkg}.backend_is_running", return_value=True)):
+        win._menu_bar_autoconfigure()
+
+        # We expect the database to be initialized and the backend started
+        win.autoconfigure.assert_called_once_with(db_dir)
+        initialize_and_start_backend.assert_not_called()
+
+    # Autoconfigure again, the GUI should start the backend again
+    with (helper_patch() as initialize_and_start_backend,
+          patch(f"{pkg}.backend_is_running", return_value=False)):
+        win._menu_bar_autoconfigure()
+
+        # This time the database is already initialized
+        win.autoconfigure.assert_called_once_with(db_dir)
+        initialize_and_start_backend.assert_called_once_with(db_dir, 1234)
 
 def test_user_vars(mock_ctx_user, mock_user_vars, mock_db, qtbot):
 
