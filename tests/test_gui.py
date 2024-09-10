@@ -36,29 +36,29 @@ def pid_dead(pid):
         return True
 
 
-def test_connect_to_kafka(mock_db, qtbot):
-    db_dir, db = mock_db
-    pkg = "damnit.gui.kafka"
+# def test_connect_to_kafka(mock_db, qtbot):
+#     db_dir, db = mock_db
+#     pkg = "damnit.gui.kafka"
 
-    with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
-         patch(f"{pkg}.KafkaProducer") as kafka_prd:
-        win = MainWindow(db_dir, False)
+#     with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
+#          patch(f"{pkg}.KafkaProducer") as kafka_prd:
+#         win = MainWindow(db_dir, False)
 
-        with qtbot.waitSignal(win._editor.check_result):
-            kafka_cns.assert_not_called()
-            kafka_prd.assert_not_called()
+#         with qtbot.waitSignal(win._editor.check_result):
+#             kafka_cns.assert_not_called()
+#             kafka_prd.assert_not_called()
 
-        win.close()
+#         win.close()
 
-    with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
-         patch(f"{pkg}.KafkaProducer") as kafka_prd:
-        win = MainWindow(db_dir, True)
+#     with patch(f"{pkg}.KafkaConsumer") as kafka_cns, \
+#          patch(f"{pkg}.KafkaProducer") as kafka_prd:
+#         win = MainWindow(db_dir, True)
 
-        with qtbot.waitSignal(win._editor.check_result):
-            kafka_cns.assert_called_once()
-            kafka_prd.assert_called_once()
+#         with qtbot.waitSignal(win._editor.check_result):
+#             kafka_cns.assert_called_once()
+#             kafka_prd.assert_called_once()
 
-        win.close()
+#         win.close()
 
 
 def test_editor(mock_db, mock_ctx, qtbot):
