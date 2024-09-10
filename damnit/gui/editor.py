@@ -96,6 +96,7 @@ class Editor(QsciScintilla):
             return
 
         context_python = db.metameta.get("context_python")
+        print('>>>>>>>', self.text(), db.path.parent, context_python)
         self._file_checker_thread = context_file_checker(
             self.text(), db.path.parent, context_python)
         self._file_checker_thread.returned.connect(self.on_test_result)
