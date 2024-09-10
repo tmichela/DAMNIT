@@ -847,7 +847,14 @@ da-dev@xfel.eu"""
         # Clear the widget and wait for a bit to visually indicate to the
         # user that something happened.
         self._error_widget.setText("")
-        QtCore.QTimer.singleShot(100, lambda: self._error_widget.setText(text))
+
+        def _set_text():
+            try:
+                self._error_widget.setText(text)
+            except RuntimeError:
+                pass
+        
+        QtCore.QTimer.singleShot(100, _set_text)
 
     def save_context(self):
         self._context_code_to_save = self._editor.text()
